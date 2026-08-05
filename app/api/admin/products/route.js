@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+export const dynamic = 'force-dynamic';
 
 function slugify(name) {
   return name
