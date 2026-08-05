@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #fafaf8;
+  color: #0a0a0a;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+.nav-link {
+  @apply text-xs font-bold uppercase tracking-wide2 hover:opacity-60 transition-opacity;
+}
+
+.btn-primary {
+  @apply w-full bg-ink text-white text-xs font-bold uppercase tracking-wide2 py-4 hover:bg-neutral-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed;
+}
+
+.btn-outline {
+  @apply w-full border border-ink text-ink text-xs font-bold uppercase tracking-wide2 py-4 hover:bg-ink hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed;
+}
+
+.input-field {
+  @apply w-full border border-neutral-300 px-4 py-3 text-sm focus:outline-none focus:border-ink transition-colors;
+}
+
+.label-text {
+  @apply text-xs font-bold uppercase tracking-wide2 mb-2 block;
+}
