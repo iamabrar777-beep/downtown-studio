@@ -7,7 +7,10 @@ export const revalidate = 0;
 // Add one or two real photo URLs here (portrait orientation, 1600x2000px
 // or larger works best). With two images, they'll crossfade every 15
 // seconds. With zero, it falls back to a styled gradient automatically.
-const HERO_IMAGES = [];
+const HERO_IMAGES = [
+  'https://images.pexels.com/photos/16831788/pexels-photo-16831788.jpeg',
+  'https://images.pexels.com/photos/25745245/pexels-photo-25745245.jpeg'
+];
 
 async function getFeaturedProducts() {
   const { data, error } = await supabase
