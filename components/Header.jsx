@@ -11,7 +11,7 @@ export default function Header() {
 
   const headerClass = isHome
     ? 'absolute top-0 left-0 right-0 z-40 bg-transparent'
-    : 'sticky top-0 z-40 bg-paper border-b border-line';
+    : 'sticky top-0 z-40 bg-paper';
 
   const textClass = isHome ? 'text-white' : 'text-ink';
 
