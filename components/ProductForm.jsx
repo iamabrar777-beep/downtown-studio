@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-const ALL_SIZES = ['S', 'M', 'L', 'XL'];
+const ALL_SIZES = ['M', 'L', 'XL', 'XXL'];
 
 export default function ProductForm({ initialProduct, onSaved, onCancel }) {
   const isEdit = !!initialProduct;
