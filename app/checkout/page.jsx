@@ -11,8 +11,8 @@ function formatPrice(n) {
 const SHIPPING = 70;
 
 // Update these to the real merchant/personal numbers before going live.
-const BKASH_NUMBER = '017XXXXXXXX';
-const NAGAD_NUMBER = '017XXXXXXXX';
+const BKASH_NUMBER = '01885624604';
+const NAGAD_NUMBER = '01885624604';
 
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
