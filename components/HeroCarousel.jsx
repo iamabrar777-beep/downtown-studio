@@ -5,9 +5,14 @@ import Image from 'next/image';
 
 const CROSSFADE_INTERVAL_MS = 15000;
 
+function normalize(entry) {
+  if (typeof entry === 'string') return { src: entry, position: 'top' };
+  return { src: entry.src, position: entry.position || 'top' };
+}
+
 export default function HeroCarousel({ images }) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const validImages = (images || []).filter(Boolean);
+  const validImages = (images || []).filter(Boolean).map(normalize);
 
   useEffect(() => {
     if (validImages.length < 2) return;
@@ -30,14 +35,15 @@ export default function HeroCarousel({ images }) {
 
   return (
     <>
-      {validImages.map((src, i) => (
+      {validImages.map(({ src, position }, i) => (
         <Image
           key={src}
           src={src}
           alt=""
           fill
           priority={i === 0}
-          className={`object-cover transition-opacity duration-[1500ms] ease-in-out ${
+          style={{ objectFit: 'cover', objectPosition: position }}
+          className={`transition-opacity duration-[1500ms] ease-in-out ${
             i === activeIndex ? 'opacity-100' : 'opacity-0'
           }`}
         />
