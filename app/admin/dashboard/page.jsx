@@ -61,7 +61,7 @@ function ProductsPanel() {
 
   async function loadProducts() {
     setLoading(true);
-    const res = await fetch('/api/admin/products');
+    const res = await fetch('/api/admin/products', { cache: 'no-store' });
     const data = await res.json();
     setProducts(data.products || []);
     setLoading(false);
@@ -162,7 +162,7 @@ function OrdersPanel() {
 
   async function loadOrders() {
     setLoading(true);
-    const res = await fetch('/api/admin/orders');
+    const res = await fetch('/api/admin/orders', { cache: 'no-store' });
     const data = await res.json();
     setOrders(data.orders || []);
     setLoading(false);
@@ -179,63 +179,74 @@ function OrdersPanel() {
     loadOrders();
   }
 
-  if (loading) return <p className="text-sm text-neutral-500">Loading...</p>;
-  if (orders.length === 0) return <p className="text-sm text-neutral-500">No orders yet.</p>;
-
   return (
-    <div className="flex flex-col gap-3">
-      {orders.map((order) => (
-        <div key={order.id} className="border border-line p-4">
-          <div
-            className="flex flex-wrap items-center justify-between gap-2 cursor-pointer"
-            onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
-          >
-            <div>
-              <p className="font-bold text-sm">{order.order_number}</p>
-              <p className="text-xs text-neutral-500">
-                {order.customer_name} · {order.phone} · {new Date(order.created_at).toLocaleString()}
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-bold">{formatPrice(order.total)}</span>
-              <select
-                value={order.status}
-                onClick={(e) => e.stopPropagation()}
-                onChange={(e) => updateStatus(order.id, e.target.value)}
-                className="border border-neutral-300 text-xs px-2 py-1 uppercase"
-              >
-                {ORDER_STATUSES.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-            </div>
-          </div>
+    <div>
+      <div className="flex justify-end mb-4">
+        <button onClick={loadOrders} className="text-xs uppercase tracking-wide2 underline">
+          {loading ? 'Refreshing...' : 'Refresh'}
+        </button>
+      </div>
 
-          {expandedId === order.id && (
-            <div className="mt-4 pt-4 border-t border-line grid md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="font-bold uppercase text-xs tracking-wide2 mb-2">Items</p>
-                {order.items.map((item, i) => (
-                  <p key={i} className="text-neutral-600">
-                    {item.name} {item.size ? `- ${item.size}` : ''} &times; {item.qty} — {formatPrice(item.price * item.qty)}
+      {loading ? (
+        <p className="text-sm text-neutral-500">Loading...</p>
+      ) : orders.length === 0 ? (
+        <p className="text-sm text-neutral-500">No orders yet.</p>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {orders.map((order) => (
+            <div key={order.id} className="border border-line p-4">
+              <div
+                className="flex flex-wrap items-center justify-between gap-2 cursor-pointer"
+                onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
+              >
+                <div>
+                  <p className="font-bold text-sm">{order.order_number}</p>
+                  <p className="text-xs text-neutral-500">
+                    {order.customer_name} · {order.phone} · {new Date(order.created_at).toLocaleString()}
                   </p>
-                ))}
-                <p className="mt-2 text-neutral-600">Shipping: {formatPrice(order.shipping)}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-bold">{formatPrice(order.total)}</span>
+                  <select
+                    value={order.status}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={(e) => updateStatus(order.id, e.target.value)}
+                    className="border border-neutral-300 text-xs px-2 py-1 uppercase"
+                  >
+                    {ORDER_STATUSES.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
-              <div>
-                <p className="font-bold uppercase text-xs tracking-wide2 mb-2">Delivery &amp; Payment</p>
-                <p className="text-neutral-600">{order.address}, {order.city}{order.district ? `, ${order.district}` : ''}</p>
-                {order.email && <p className="text-neutral-600">{order.email}</p>}
-                {order.notes && <p className="text-neutral-600 italic mt-1">Note: {order.notes}</p>}
-                <p className="mt-2 text-neutral-600 uppercase">
-                  {order.payment_method}
-                  {order.payment_reference ? ` — Ref: ${order.payment_reference}` : ''}
-                </p>
-              </div>
+
+              {expandedId === order.id && (
+                <div className="mt-4 pt-4 border-t border-line grid md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="font-bold uppercase text-xs tracking-wide2 mb-2">Items</p>
+                    {order.items.map((item, i) => (
+                      <p key={i} className="text-neutral-600">
+                        {item.name} {item.size ? `- ${item.size}` : ''} &times; {item.qty} — {formatPrice(item.price * item.qty)}
+                      </p>
+                    ))}
+                    <p className="mt-2 text-neutral-600">Shipping: {formatPrice(order.shipping)}</p>
+                  </div>
+                  <div>
+                    <p className="font-bold uppercase text-xs tracking-wide2 mb-2">Delivery &amp; Payment</p>
+                    <p className="text-neutral-600">{order.address}, {order.city}{order.district ? `, ${order.district}` : ''}</p>
+                    {order.email && <p className="text-neutral-600">{order.email}</p>}
+                    {order.notes && <p className="text-neutral-600 italic mt-1">Note: {order.notes}</p>}
+                    <p className="mt-2 text-neutral-600 uppercase">
+                      {order.payment_method}
+                      {order.payment_reference ? ` — Ref: ${order.payment_reference}` : ''}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          ))}
         </div>
-      ))}
+      )}
     </div>
   );
 }
