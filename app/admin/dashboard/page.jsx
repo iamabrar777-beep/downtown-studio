@@ -236,8 +236,12 @@ function OrdersPanel() {
                     <p className="text-neutral-600">{order.address}, {order.city}{order.district ? `, ${order.district}` : ''}</p>
                     {order.email && <p className="text-neutral-600">{order.email}</p>}
                     {order.notes && <p className="text-neutral-600 italic mt-1">Note: {order.notes}</p>}
+                    <p className="mt-2 text-neutral-600">
+                      Delivery Area: <span className="uppercase">{order.delivery_zone === 'outside' ? 'Outside Ctg' : 'Inside Ctg'}</span>
+                    </p>
                     <p className="mt-2 text-neutral-600 uppercase">
                       {order.payment_method}
+                      {order.payment_number ? ` — From: ${order.payment_number}` : ''}
                       {order.payment_reference ? ` — Ref: ${order.payment_reference}` : ''}
                     </p>
                   </div>
