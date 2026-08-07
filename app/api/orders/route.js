@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
-const FLAT_SHIPPING_RATE = 70;
+const SHIPPING_RATES = { inside: 70, outside: 130 };
 
 function generateOrderNumber() {
   const now = new Date();
@@ -15,7 +15,7 @@ function generateOrderNumber() {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { items, customer, paymentMethod, paymentReference } = body;
+    const { items, customer, deliveryZone, paymentMethod, payerNumber, paymentReference } = body;
 
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'Cart is empty.' }, { status: 400 });
@@ -23,8 +23,17 @@ export async function POST(request) {
     if (!customer?.name || !customer?.phone || !customer?.address || !customer?.city) {
       return NextResponse.json({ error: 'Missing required customer details.' }, { status: 400 });
     }
+    if (!['inside', 'outside'].includes(deliveryZone)) {
+      return NextResponse.json({ error: 'Please select a valid delivery area.' }, { status: 400 });
+    }
     if (!['cod', 'bkash', 'nagad'].includes(paymentMethod)) {
       return NextResponse.json({ error: 'Invalid payment method.' }, { status: 400 });
+    }
+    if (paymentMethod !== 'cod' && !payerNumber) {
+      return NextResponse.json(
+        { error: 'Please provide the bKash/Nagad number you paid from.' },
+        { status: 400 }
+      );
     }
     if (paymentMethod !== 'cod' && !paymentReference) {
       return NextResponse.json(
@@ -73,7 +82,7 @@ export async function POST(request) {
       });
     }
 
-    const shipping = FLAT_SHIPPING_RATE;
+    const shipping = SHIPPING_RATES[deliveryZone];
     const total = subtotal + shipping;
     const orderNumber = generateOrderNumber();
 
@@ -90,7 +99,9 @@ export async function POST(request) {
       subtotal,
       shipping,
       total,
+      delivery_zone: deliveryZone,
       payment_method: paymentMethod,
+      payment_number: payerNumber || null,
       payment_reference: paymentReference || null,
       status: 'pending'
     });

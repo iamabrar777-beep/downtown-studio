@@ -8,9 +8,8 @@ function formatPrice(n) {
   return `${Number(n).toLocaleString('en-BD')}৳`;
 }
 
-const SHIPPING = 70;
+const SHIPPING_RATES = { inside: 70, outside: 130 };
 
-// Update these to the real merchant/personal numbers before going live.
 const BKASH_NUMBER = '01885624604';
 const NAGAD_NUMBER = '01885624604';
 
@@ -21,13 +20,16 @@ export default function CheckoutPage() {
   const [form, setForm] = useState({
     name: '', phone: '', email: '', address: '', city: '', district: '', notes: ''
   });
+  const [deliveryZone, setDeliveryZone] = useState('inside');
   const [paymentMethod, setPaymentMethod] = useState('cod');
+  const [payerNumber, setPayerNumber] = useState('');
   const [paymentReference, setPaymentReference] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const total = subtotal + SHIPPING;
+  const shipping = SHIPPING_RATES[deliveryZone];
+  const total = subtotal + shipping;
 
   function update(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
@@ -54,7 +56,9 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           items: items.map((l) => ({ productId: l.productId, size: l.size, qty: l.qty })),
           customer: form,
+          deliveryZone,
           paymentMethod,
+          payerNumber: paymentMethod !== 'cod' ? payerNumber : null,
           paymentReference: paymentMethod !== 'cod' ? paymentReference : null
         })
       });
@@ -74,6 +78,11 @@ export default function CheckoutPage() {
       setSubmitting(false);
     }
   }
+
+  const paymentMethodMeta = {
+    bkash: { label: 'bKash', number: BKASH_NUMBER },
+    nagad: { label: 'Nagad', number: NAGAD_NUMBER }
+  };
 
   if (items.length === 0) {
     return (
@@ -119,6 +128,19 @@ export default function CheckoutPage() {
                 <input value={form.district} onChange={(e) => update('district', e.target.value)} className="input-field" placeholder="e.g. Chattogram" />
               </div>
             </div>
+
+            <div>
+              <label className="label-text">Delivery Area *</label>
+              <select
+                value={deliveryZone}
+                onChange={(e) => setDeliveryZone(e.target.value)}
+                className="input-field"
+              >
+                <option value="inside">Inside Chattogram — {formatPrice(SHIPPING_RATES.inside)}</option>
+                <option value="outside">Outside Chattogram — {formatPrice(SHIPPING_RATES.outside)}</option>
+              </select>
+            </div>
+
             <div>
               <label className="label-text">Order Notes (optional)</label>
               <textarea value={form.notes} onChange={(e) => update('notes', e.target.value)} className="input-field" rows={3} placeholder="Notes about your order, e.g. special delivery instructions." />
@@ -140,44 +162,70 @@ export default function CheckoutPage() {
             </div>
             <div className="border-t border-line pt-3 flex flex-col gap-2 text-sm">
               <div className="flex justify-between"><span>Subtotal</span><span>{formatPrice(subtotal)}</span></div>
-              <div className="flex justify-between"><span>Shipping</span><span className="font-bold">Flat Rate: {formatPrice(SHIPPING)}</span></div>
+              <div className="flex justify-between">
+                <span>Shipment</span>
+                <span className="font-bold">
+                  Flat Rate: {formatPrice(shipping)} ({deliveryZone === 'inside' ? 'Inside Ctg' : 'Outside Ctg'})
+                </span>
+              </div>
               <div className="flex justify-between text-base font-bold border-t border-line pt-2"><span>Total</span><span>{formatPrice(total)}</span></div>
             </div>
 
             <div className="mt-6 flex flex-col gap-2">
-              {[
-                { id: 'cod', label: 'Cash on Delivery', hint: 'Pay with cash upon delivery.' },
-                { id: 'bkash', label: 'bKash', hint: `Send ${formatPrice(total)} to ${BKASH_NUMBER} (Personal), then enter the Transaction ID below.` },
-                { id: 'nagad', label: 'Nagad', hint: `Send ${formatPrice(total)} to ${NAGAD_NUMBER} (Personal), then enter the Transaction ID below.` }
-              ].map((opt) => (
-                <label key={opt.id} className={`border p-3 cursor-pointer ${paymentMethod === opt.id ? 'border-ink' : 'border-neutral-300'}`}>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      checked={paymentMethod === opt.id}
-                      onChange={() => setPaymentMethod(opt.id)}
-                    />
-                    <span className="text-sm font-bold uppercase">{opt.label}</span>
-                  </div>
-                  {paymentMethod === opt.id && (
-                    <p className="text-xs text-neutral-500 mt-2">{opt.hint}</p>
-                  )}
-                </label>
-              ))}
-
-              {paymentMethod !== 'cod' && (
-                <div className="mt-2">
-                  <label className="label-text">Transaction ID *</label>
-                  <input
-                    value={paymentReference}
-                    onChange={(e) => setPaymentReference(e.target.value)}
-                    className="input-field"
-                    placeholder="e.g. 8N7A2K9XYZ"
-                    required={paymentMethod !== 'cod'}
-                  />
+              <label className={`border p-3 cursor-pointer ${paymentMethod === 'cod' ? 'border-ink' : 'border-neutral-300'}`}>
+                <div className="flex items-center gap-2">
+                  <input type="radio" name="paymentMethod" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} />
+                  <span className="text-sm font-bold uppercase">Cash on Delivery</span>
                 </div>
-              )}
+                {paymentMethod === 'cod' && (
+                  <p className="text-xs text-neutral-500 mt-2">Pay with cash upon delivery.</p>
+                )}
+              </label>
+
+              {['bkash', 'nagad'].map((methodId) => {
+                const meta = paymentMethodMeta[methodId];
+                const active = paymentMethod === methodId;
+                return (
+                  <label key={methodId} className={`border p-3 cursor-pointer ${active ? 'border-ink' : 'border-neutral-300'}`}>
+                    <div className="flex items-center gap-2">
+                      <input type="radio" name="paymentMethod" checked={active} onChange={() => setPaymentMethod(methodId)} />
+                      <span className="text-sm font-bold uppercase">{meta.label}</span>
+                    </div>
+
+                    {active && (
+                      <div className="mt-3 bg-neutral-50 p-4 -mx-3 -mb-3 border-t border-line">
+                        <p className="text-xs text-neutral-600 mb-3">
+                          Please complete your {meta.label} payment at first, then fill up the form below.
+                        </p>
+                        <p className="text-xs mb-4">
+                          <span className="font-bold">{meta.label} Personal Number:</span> {meta.number}
+                        </p>
+
+                        <div className="mb-3">
+                          <label className="label-text">{meta.label} Number *</label>
+                          <input
+                            value={payerNumber}
+                            onChange={(e) => setPayerNumber(e.target.value)}
+                            className="input-field bg-white"
+                            placeholder="017XXXXXXXX"
+                            required={active}
+                          />
+                        </div>
+                        <div>
+                          <label className="label-text">{meta.label} Transaction ID *</label>
+                          <input
+                            value={paymentReference}
+                            onChange={(e) => setPaymentReference(e.target.value)}
+                            className="input-field bg-white"
+                            placeholder="8N7A6D5EE7M"
+                            required={active}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </label>
+                );
+              })}
             </div>
 
             <label className="flex items-start gap-2 mt-6 text-xs">
