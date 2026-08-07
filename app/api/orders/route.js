@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { isValidBDPhone, isValidTransactionId } from '@/lib/validators';
 
 const SHIPPING_RATES = { inside: 70, outside: 130 };
 
@@ -23,21 +24,27 @@ export async function POST(request) {
     if (!customer?.name || !customer?.phone || !customer?.address || !customer?.city) {
       return NextResponse.json({ error: 'Missing required customer details.' }, { status: 400 });
     }
+    if (!isValidBDPhone(customer.phone)) {
+      return NextResponse.json(
+        { error: 'Please enter a valid Bangladeshi phone number.' },
+        { status: 400 }
+      );
+    }
     if (!['inside', 'outside'].includes(deliveryZone)) {
       return NextResponse.json({ error: 'Please select a valid delivery area.' }, { status: 400 });
     }
     if (!['cod', 'bkash', 'nagad'].includes(paymentMethod)) {
       return NextResponse.json({ error: 'Invalid payment method.' }, { status: 400 });
     }
-    if (paymentMethod !== 'cod' && !payerNumber) {
+    if (paymentMethod !== 'cod' && !isValidBDPhone(payerNumber)) {
       return NextResponse.json(
-        { error: 'Please provide the bKash/Nagad number you paid from.' },
+        { error: 'Please enter a valid bKash/Nagad number.' },
         { status: 400 }
       );
     }
-    if (paymentMethod !== 'cod' && !paymentReference) {
+    if (paymentMethod !== 'cod' && !isValidTransactionId(paymentReference)) {
       return NextResponse.json(
-        { error: 'Please provide the bKash/Nagad transaction ID.' },
+        { error: 'Please enter a valid Transaction ID.' },
         { status: 400 }
       );
     }

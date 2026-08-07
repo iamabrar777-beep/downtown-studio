@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cartContext';
+import { isValidBDPhone, isValidTransactionId } from '@/lib/validators';
 
 function formatPrice(n) {
   return `${Number(n).toLocaleString('en-BD')}৳`;
@@ -46,6 +47,20 @@ export default function CheckoutPage() {
     if (items.length === 0) {
       setError('Your cart is empty.');
       return;
+    }
+    if (!isValidBDPhone(form.phone)) {
+      setError('Please enter a valid Bangladeshi phone number (e.g. 01712345678).');
+      return;
+    }
+    if (paymentMethod !== 'cod') {
+      if (!isValidBDPhone(payerNumber)) {
+        setError(`Please enter a valid ${paymentMethod === 'bkash' ? 'bKash' : 'Nagad'} number (e.g. 01712345678).`);
+        return;
+      }
+      if (!isValidTransactionId(paymentReference)) {
+        setError('Please enter a valid Transaction ID (letters and numbers only, e.g. 8N7A6D5EE7M).');
+        return;
+      }
     }
 
     setSubmitting(true);
