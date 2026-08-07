@@ -10,7 +10,7 @@ export default function CheckoutSuccessPage({ searchParams }) {
         ✓
       </div>
       <h1 className="text-2xl font-bold uppercase mb-3">Order Placed!</h1>
-      <p className="text-sm text-neutral-600 mb-8">
+      <p className="text-sm text-neutral-400 mb-8">
         Thank you for your order. We'll contact you shortly to confirm delivery details.
       </p>
       <div className="border border-dashed border-ink p-6 text-left mb-8">

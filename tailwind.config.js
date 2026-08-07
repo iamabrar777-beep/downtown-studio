@@ -7,9 +7,9 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        ink: '#0a0a0a',
-        paper: '#fafaf8',
-        line: '#e4e2dc'
+        ink: '#F5F4F0',
+        paper: '#0A0A0A',
+        line: '#2A2A2A'
       },
       letterSpacing: {
         wide2: '0.08em'

@@ -94,7 +94,7 @@ export default function ProductDetail({ product }) {
         )}
 
         {product.description && (
-          <p className="text-sm text-neutral-600 mt-4">{product.description}</p>
+          <p className="text-sm text-neutral-400 mt-4">{product.description}</p>
         )}
 
         <div className="flex gap-2 mt-6">
@@ -129,7 +129,7 @@ export default function ProductDetail({ product }) {
             Size Guide <span>{showSize ? '−' : '+'}</span>
           </button>
           {showSize && (
-            <div className="pb-4 text-sm text-neutral-600">
+            <div className="pb-4 text-sm text-neutral-400">
               Refer to the size chart below for measurements (in cm). If between sizes, we recommend sizing up for an oversized fit.
             </div>
           )}
@@ -142,7 +142,7 @@ export default function ProductDetail({ product }) {
             Shipping <span>{showShipping ? '−' : '+'}</span>
           </button>
           {showShipping && (
-            <div className="pb-4 text-sm text-neutral-600">
+            <div className="pb-4 text-sm text-neutral-400">
               Cash on Delivery available nationwide. ৳70 flat rate shipping across Bangladesh via Pathao/RedX, 2-5 business days.
             </div>
           )}

@@ -225,21 +225,21 @@ function OrdersPanel() {
                   <div>
                     <p className="font-bold uppercase text-xs tracking-wide2 mb-2">Items</p>
                     {order.items.map((item, i) => (
-                      <p key={i} className="text-neutral-600">
+                      <p key={i} className="text-neutral-400">
                         {item.name} {item.size ? `- ${item.size}` : ''} &times; {item.qty} — {formatPrice(item.price * item.qty)}
                       </p>
                     ))}
-                    <p className="mt-2 text-neutral-600">Shipping: {formatPrice(order.shipping)}</p>
+                    <p className="mt-2 text-neutral-400">Shipping: {formatPrice(order.shipping)}</p>
                   </div>
                   <div>
                     <p className="font-bold uppercase text-xs tracking-wide2 mb-2">Delivery &amp; Payment</p>
-                    <p className="text-neutral-600">{order.address}, {order.city}{order.district ? `, ${order.district}` : ''}</p>
-                    {order.email && <p className="text-neutral-600">{order.email}</p>}
-                    {order.notes && <p className="text-neutral-600 italic mt-1">Note: {order.notes}</p>}
-                    <p className="mt-2 text-neutral-600">
+                    <p className="text-neutral-400">{order.address}, {order.city}{order.district ? `, ${order.district}` : ''}</p>
+                    {order.email && <p className="text-neutral-400">{order.email}</p>}
+                    {order.notes && <p className="text-neutral-400 italic mt-1">Note: {order.notes}</p>}
+                    <p className="mt-2 text-neutral-400">
                       Delivery Area: <span className="uppercase">{order.delivery_zone === 'outside' ? 'Outside Ctg' : 'Inside Ctg'}</span>
                     </p>
-                    <p className="mt-2 text-neutral-600 uppercase">
+                    <p className="mt-2 text-neutral-400 uppercase">
                       {order.payment_method}
                       {order.payment_number ? ` — From: ${order.payment_number}` : ''}
                       {order.payment_reference ? ` — Ref: ${order.payment_reference}` : ''}
