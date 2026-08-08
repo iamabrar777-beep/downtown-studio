@@ -211,7 +211,7 @@ function OrdersPanel() {
                     value={order.status}
                     onClick={(e) => e.stopPropagation()}
                     onChange={(e) => updateStatus(order.id, e.target.value)}
-                    className="border border-neutral-300 text-xs px-2 py-1 uppercase"
+                    className="appearance-none border border-neutral-300 text-xs px-2 py-1 uppercase bg-paper text-ink"
                   >
                     {ORDER_STATUSES.map((s) => (
                       <option key={s} value={s}>{s}</option>

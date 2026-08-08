@@ -143,7 +143,7 @@ export default function ProductForm({ initialProduct, onSaved, onCancel }) {
                   key={s}
                   type="button"
                   onClick={() => toggleSize(s)}
-                  className={`w-10 h-10 border text-sm ${sizes.includes(s) ? 'bg-ink text-white border-ink' : 'border-neutral-300'}`}
+                  className={`w-10 h-10 border text-sm appearance-none ${sizes.includes(s) ? 'bg-ink text-paper border-ink' : 'bg-paper text-ink border-neutral-600'}`}
                 >
                   {s}
                 </button>

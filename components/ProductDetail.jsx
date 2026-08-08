@@ -102,8 +102,8 @@ export default function ProductDetail({ product }) {
             <button
               key={size}
               onClick={() => { setSelectedSize(size); setError(''); }}
-              className={`w-12 h-12 border text-sm ${
-                selectedSize === size ? 'bg-ink text-white border-ink' : 'border-neutral-300'
+              className={`w-12 h-12 border text-sm appearance-none ${
+                selectedSize === size ? 'bg-ink text-paper border-ink' : 'bg-paper text-ink border-neutral-600'
               }`}
             >
               {size}

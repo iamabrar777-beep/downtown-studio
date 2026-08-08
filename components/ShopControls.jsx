@@ -28,7 +28,7 @@ export default function ShopControls() {
       <select
         value={currentSort}
         onChange={(e) => updateSort(e.target.value)}
-        className="text-sm text-ink border border-line px-4 py-2 bg-transparent focus:outline-none"
+        className="appearance-none text-sm text-ink border border-line px-4 py-2 bg-paper focus:outline-none"
       >
         {SORT_OPTIONS.map((opt) => (
           <option key={opt.value} value={opt.value}>{opt.label}</option>
