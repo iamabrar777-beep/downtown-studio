@@ -15,7 +15,8 @@ export default function TermsPage() {
       <h2 className="font-bold uppercase text-sm tracking-wide2 mb-3">Delivery</h2>
       <p className="text-sm text-neutral-400 mb-8 leading-relaxed">
         We deliver nationwide across Bangladesh via Pathao/RedX. Standard delivery takes
-        2-5 business days. A flat shipping rate of 70৳ applies to all orders.
+        2-5 business days. Delivery charges are 70৳ inside Chattogram and 130৳ outside
+        Chattogram.
       </p>
 
       <h2 className="font-bold uppercase text-sm tracking-wide2 mb-3">Payment</h2>
