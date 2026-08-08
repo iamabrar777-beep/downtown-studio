@@ -12,7 +12,9 @@ export default function ProductForm({ initialProduct, onSaved, onCancel }) {
   const [category, setCategory] = useState(initialProduct?.category || '');
   const [description, setDescription] = useState(initialProduct?.description || '');
   const [bulletText, setBulletText] = useState((initialProduct?.bullet_points || []).join('\n'));
-  const [sizes, setSizes] = useState(initialProduct?.sizes || ['S', 'M', 'L', 'XL']);
+  const [sizes, setSizes] = useState(
+    (initialProduct?.sizes || ALL_SIZES).filter((s) => ALL_SIZES.includes(s))
+  );
   const [stock, setStock] = useState(initialProduct?.stock ?? 10);
   const [featured, setFeatured] = useState(initialProduct?.featured || false);
   const [images, setImages] = useState(initialProduct?.images || []);
