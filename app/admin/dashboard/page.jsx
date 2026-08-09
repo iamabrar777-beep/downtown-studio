@@ -123,7 +123,17 @@ function ProductsPanel() {
                   <td className="py-3 pr-4">{p.category}</td>
                   <td className="py-3 pr-4">{formatPrice(p.price)}</td>
                   <td className="py-3 pr-4">
-                    <span className={p.stock <= 0 ? 'text-red-600 font-bold' : ''}>{p.stock}</span>
+                    {(() => {
+                      const sizes = p.sizes || [];
+                      const total = sizes.reduce((sum, s) => sum + Number(p.stock?.[s] ?? 0), 0);
+                      return (
+                        <span className={total <= 0 ? 'text-red-600 font-bold' : ''}>
+                          {sizes.length > 0
+                            ? sizes.map((s) => `${s}:${p.stock?.[s] ?? 0}`).join(' ')
+                            : '—'}
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td className="py-3 pr-4">{p.featured ? '★' : ''}</td>
                   <td className="py-3 pr-4 whitespace-nowrap">
