@@ -43,7 +43,6 @@ export default async function ShopPage({ searchParams }) {
             </div>
           ))}
         </div>
-        </div>
       )}
     </main>
   );
