@@ -71,9 +71,10 @@ export async function POST(request) {
           { status: 400 }
         );
       }
-      if (product.stock < item.qty) {
+      const sizeStock = Number(product.stock?.[item.size] ?? 0);
+      if (sizeStock < item.qty) {
         return NextResponse.json(
-          { error: `Only ${product.stock} left in stock for "${product.name}".` },
+          { error: `Only ${sizeStock} left in size ${item.size} for "${product.name}".` },
           { status: 400 }
         );
       }
@@ -115,14 +116,23 @@ export async function POST(request) {
 
     if (insertError) throw insertError;
 
-    // Decrement stock for each purchased item (best-effort; not a hard
-    // transaction, which is fine for a single-admin small shop).
+    // Decrement stock for each purchased item, for the specific size
+    // ordered only. Merge all changes per product FIRST (in case the
+    // same product appears twice with different sizes in one order),
+    // then write once per product — writing separately per line item
+    // would let a second update silently overwrite the first's change,
+    // since each write would otherwise be computed from the same stale
+    // pre-order stock snapshot.
+    const stockUpdates = new Map(); // product_id -> updated stock object
     for (const item of orderItems) {
       const product = productMap.get(item.product_id);
-      await supabaseAdmin
-        .from('products')
-        .update({ stock: product.stock - item.qty })
-        .eq('id', item.product_id);
+      const base = stockUpdates.get(item.product_id) || { ...product.stock };
+      const currentSizeStock = Number(base[item.size] ?? 0);
+      base[item.size] = currentSizeStock - item.qty;
+      stockUpdates.set(item.product_id, base);
+    }
+    for (const [productId, updatedStock] of stockUpdates.entries()) {
+      await supabaseAdmin.from('products').update({ stock: updatedStock }).eq('id', productId);
     }
 
     return NextResponse.json({ orderNumber, total });

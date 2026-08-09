@@ -19,11 +19,24 @@ export default function ProductDetail({ product }) {
   const router = useRouter();
 
   const images = product.images?.length ? product.images : [null];
-  const outOfStock = product.stock <= 0;
+
+  // Stock is tracked per size (e.g. { M: 5, L: 0, XL: 3 }). The product
+  // as a whole is only "out of stock" if every size is at zero — a sold
+  // out Medium shouldn't block someone buying an available Large.
+  function stockFor(size) {
+    return Number(product.stock?.[size] ?? 0);
+  }
+  const totalStock = (product.sizes || []).reduce((sum, s) => sum + stockFor(s), 0);
+  const outOfStock = totalStock <= 0;
+  const selectedSizeOutOfStock = selectedSize && stockFor(selectedSize) <= 0;
 
   function requireSize() {
     if (!selectedSize) {
       setError('Please select a size.');
+      return false;
+    }
+    if (stockFor(selectedSize) <= 0) {
+      setError('That size is out of stock.');
       return false;
     }
     setError('');
@@ -98,17 +111,22 @@ export default function ProductDetail({ product }) {
         )}
 
         <div className="flex gap-2 mt-6">
-          {product.sizes?.map((size) => (
-            <button
-              key={size}
-              onClick={() => { setSelectedSize(size); setError(''); }}
-              className={`w-12 h-12 border text-sm appearance-none ${
-                selectedSize === size ? 'bg-ink text-paper border-ink' : 'bg-paper text-ink border-neutral-600'
-              }`}
-            >
-              {size}
-            </button>
-          ))}
+          {product.sizes?.map((size) => {
+            const sizeAvailable = stockFor(size) > 0;
+            return (
+              <button
+                key={size}
+                onClick={() => { if (sizeAvailable) { setSelectedSize(size); setError(''); } }}
+                disabled={!sizeAvailable}
+                title={sizeAvailable ? undefined : 'Out of stock'}
+                className={`relative w-12 h-12 border text-sm appearance-none ${
+                  selectedSize === size ? 'bg-ink text-paper border-ink' : 'bg-paper text-ink border-neutral-600'
+                } ${!sizeAvailable ? 'opacity-30 cursor-not-allowed line-through' : ''}`}
+              >
+                {size}
+              </button>
+            );
+          })}
         </div>
         {error && <p className="text-xs text-red-600 mt-2">{error}</p>}
 
@@ -143,7 +161,7 @@ export default function ProductDetail({ product }) {
           </button>
           {showShipping && (
             <div className="pb-4 text-sm text-neutral-400">
-              Cash on Delivery available nationwide. ৳70 flat rate shipping across Bangladesh via Pathao/RedX, 2-5 business days.
+              Cash on Delivery available nationwide. Delivery charges are 70৳ inside Chattogram and 130৳ outside, 2-5 business days.
             </div>
           )}
         </div>

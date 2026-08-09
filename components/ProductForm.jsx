@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 const ALL_SIZES = ['M', 'L', 'XL', 'XXL'];
+const DEFAULT_SIZE_STOCK = 10;
 
 export default function ProductForm({ initialProduct, onSaved, onCancel }) {
   const isEdit = !!initialProduct;
@@ -15,7 +16,21 @@ export default function ProductForm({ initialProduct, onSaved, onCancel }) {
   const [sizes, setSizes] = useState(
     (initialProduct?.sizes || ALL_SIZES).filter((s) => ALL_SIZES.includes(s))
   );
-  const [stock, setStock] = useState(initialProduct?.stock ?? 10);
+  // Stock is tracked PER SIZE, e.g. { M: 5, L: 0, XL: 3 } — not one
+  // shared number, since selling out a Medium shouldn't mark a Large
+  // as out of stock too, and vice versa.
+  const [stock, setStock] = useState(() => {
+    const existing = initialProduct?.stock;
+    if (existing && typeof existing === 'object' && !Array.isArray(existing)) {
+      return existing;
+    }
+    // Legacy data safety net: if this product still has the old
+    // single-number stock format, don't silently lose it — spread it
+    // across whatever sizes it has so nothing looks emptied out.
+    const fallback = {};
+    for (const s of sizes) fallback[s] = typeof existing === 'number' ? existing : DEFAULT_SIZE_STOCK;
+    return fallback;
+  });
   const [featured, setFeatured] = useState(initialProduct?.featured || false);
   const [images, setImages] = useState(initialProduct?.images || []);
   const [uploading, setUploading] = useState(false);
@@ -23,7 +38,20 @@ export default function ProductForm({ initialProduct, onSaved, onCancel }) {
   const [error, setError] = useState('');
 
   function toggleSize(size) {
-    setSizes((prev) => (prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]));
+    setSizes((prev) => {
+      const next = prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size];
+      return next;
+    });
+    // Give a newly-added size a sensible default stock count so the
+    // admin doesn't have to remember to fill it in separately.
+    setStock((prev) => {
+      if (size in prev) return prev;
+      return { ...prev, [size]: DEFAULT_SIZE_STOCK };
+    });
+  }
+
+  function updateSizeStock(size, value) {
+    setStock((prev) => ({ ...prev, [size]: value }));
   }
 
   async function handleImageUpload(e) {
@@ -61,8 +89,19 @@ export default function ProductForm({ initialProduct, onSaved, onCancel }) {
       setError('Name and price are required.');
       return;
     }
+    if (sizes.length === 0) {
+      setError('Select at least one size.');
+      return;
+    }
 
     setSaving(true);
+
+    // Only keep stock numbers for sizes that are actually still selected —
+    // same fix as the earlier stray-size bug: don't let removed sizes
+    // silently linger in the saved data.
+    const cleanStock = {};
+    for (const s of sizes) cleanStock[s] = Number(stock[s] ?? 0);
+
     const payload = {
       name,
       price: Number(price),
@@ -71,7 +110,7 @@ export default function ProductForm({ initialProduct, onSaved, onCancel }) {
       bulletPoints: bulletText.split('\n').map((b) => b.trim()).filter(Boolean),
       sizes,
       images,
-      stock: Number(stock),
+      stock: cleanStock,
       featured
     };
 
@@ -110,15 +149,9 @@ export default function ProductForm({ initialProduct, onSaved, onCancel }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="label-text">Category</label>
-              <input value={category} onChange={(e) => setCategory(e.target.value)} className="input-field" placeholder="e.g. Graphic, Vintage" />
-            </div>
-            <div>
-              <label className="label-text">Stock Quantity</label>
-              <input type="number" value={stock} onChange={(e) => setStock(e.target.value)} className="input-field" />
-            </div>
+          <div>
+            <label className="label-text">Category</label>
+            <input value={category} onChange={(e) => setCategory(e.target.value)} className="input-field" placeholder="e.g. Graphic, Vintage" />
           </div>
 
           <div>
@@ -138,8 +171,8 @@ export default function ProductForm({ initialProduct, onSaved, onCancel }) {
           </div>
 
           <div>
-            <label className="label-text">Available Sizes</label>
-            <div className="flex gap-2">
+            <label className="label-text">Available Sizes &amp; Stock</label>
+            <div className="flex gap-2 mb-3">
               {ALL_SIZES.map((s) => (
                 <button
                   key={s}
@@ -151,12 +184,29 @@ export default function ProductForm({ initialProduct, onSaved, onCancel }) {
                 </button>
               ))}
             </div>
+
+            {sizes.length > 0 && (
+              <div className="grid grid-cols-4 gap-2">
+                {ALL_SIZES.filter((s) => sizes.includes(s)).map((s) => (
+                  <div key={s}>
+                    <label className="text-xs text-neutral-400 block mb-1">{s} stock</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={stock[s] ?? 0}
+                      onChange={(e) => updateSizeStock(s, e.target.value)}
+                      className="input-field text-center"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>
             <label className="label-text">Product Images</label>
             <input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={handleImageUpload} disabled={uploading} className="text-sm" />
-            {uploading && <p className="text-xs text-neutral-500 mt-1">Uploading...</p>}
+            {uploading && <p className="text-xs text-neutral-400 mt-1">Uploading...</p>}
             {images.length > 0 && (
               <div className="flex gap-2 mt-2 flex-wrap">
                 {images.map((url) => (
@@ -166,7 +216,7 @@ export default function ProductForm({ initialProduct, onSaved, onCancel }) {
                     <button
                       type="button"
                       onClick={() => removeImage(url)}
-                      className="absolute -top-1 -right-1 w-4 h-4 bg-ink text-white text-[10px] rounded-full"
+                      className="absolute -top-1 -right-1 w-4 h-4 bg-ink text-paper text-[10px] rounded-full"
                     >
                       ✕
                     </button>

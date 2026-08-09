@@ -7,7 +7,11 @@ function formatPrice(n) {
 
 export default function ProductCard({ product }) {
   const image = product.images?.[0];
-  const outOfStock = product.stock <= 0;
+  const totalStock = (product.sizes || []).reduce(
+    (sum, s) => sum + Number(product.stock?.[s] ?? 0),
+    0
+  );
+  const outOfStock = totalStock <= 0;
 
   return (
     <Link href={`/product/${product.slug}`} className="group block">
