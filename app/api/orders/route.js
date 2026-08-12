@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { isValidBDPhone, isValidTransactionId } from '@/lib/validators';
-
-const SHIPPING_RATES = { inside: 70, outside: 130 };
+import { SHIPPING_RATES, detectZone } from '@/lib/shipping';
 
 function generateOrderNumber() {
   const now = new Date();
@@ -16,7 +15,7 @@ function generateOrderNumber() {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { items, customer, deliveryZone, paymentMethod, payerNumber, paymentReference } = body;
+    const { items, customer, paymentMethod, payerNumber, paymentReference } = body;
 
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'Cart is empty.' }, { status: 400 });
@@ -29,9 +28,6 @@ export async function POST(request) {
         { error: 'Please enter a valid Bangladeshi phone number.' },
         { status: 400 }
       );
-    }
-    if (!['inside', 'outside'].includes(deliveryZone)) {
-      return NextResponse.json({ error: 'Please select a valid delivery area.' }, { status: 400 });
     }
     if (!['cod', 'bkash', 'nagad'].includes(paymentMethod)) {
       return NextResponse.json({ error: 'Invalid payment method.' }, { status: 400 });
@@ -90,6 +86,9 @@ export async function POST(request) {
       });
     }
 
+    // Never trust deliveryZone sent from the browser — recompute it
+    // server-side from the actual submitted address every time.
+    const deliveryZone = detectZone(customer.city, customer.district);
     const shipping = SHIPPING_RATES[deliveryZone];
     const total = subtotal + shipping;
     const orderNumber = generateOrderNumber();

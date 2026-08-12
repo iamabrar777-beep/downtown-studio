@@ -4,22 +4,18 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cartContext';
 import { isValidBDPhone, isValidTransactionId } from '@/lib/validators';
+import { SHIPPING_RATES, detectZone } from '@/lib/shipping';
 
 function formatPrice(n) {
   return `${Number(n).toLocaleString('en-BD')}৳`;
 }
 
-const SHIPPING_RATES = { inside: 70, outside: 130 };
 
 const BKASH_NUMBER = '01885624604';
 const NAGAD_NUMBER = '01885624604';
 
-const CTG_KEYWORDS = ['chattogram', 'chittagong', 'ctg', 'চট্টগ্রাম'];
 
-function detectZone(city, district) {
-  const text = `${city} ${district}`.toLowerCase();
-  return CTG_KEYWORDS.some((k) => text.includes(k)) ? 'inside' : 'outside';
-}
+
 
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
