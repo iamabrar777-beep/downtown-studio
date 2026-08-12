@@ -14,6 +14,13 @@ const SHIPPING_RATES = { inside: 70, outside: 130 };
 const BKASH_NUMBER = '01885624604';
 const NAGAD_NUMBER = '01885624604';
 
+const CTG_KEYWORDS = ['chattogram', 'chittagong', 'ctg', 'চট্টগ্রাম'];
+
+function detectZone(city, district) {
+  const text = `${city} ${district}`.toLowerCase();
+  return CTG_KEYWORDS.some((k) => text.includes(k)) ? 'inside' : 'outside';
+}
+
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
   const router = useRouter();
@@ -21,7 +28,7 @@ export default function CheckoutPage() {
   const [form, setForm] = useState({
     name: '', phone: '', email: '', address: '', city: '', district: '', notes: ''
   });
-  const [deliveryZone, setDeliveryZone] = useState('inside');
+  const [deliveryZone, setDeliveryZone] = useState('outside');
   const [paymentMethod, setPaymentMethod] = useState('cod');
   const [payerNumber, setPayerNumber] = useState('');
   const [paymentReference, setPaymentReference] = useState('');
@@ -33,7 +40,13 @@ export default function CheckoutPage() {
   const total = subtotal + shipping;
 
   function update(field, value) {
-    setForm((f) => ({ ...f, [field]: value }));
+    setForm((f) => {
+      const next = { ...f, [field]: value };
+      if (field === 'city' || field === 'district') {
+        setDeliveryZone(detectZone(next.city, next.district));
+      }
+      return next;
+    });
   }
 
   async function handlePlaceOrder(e) {
@@ -145,7 +158,9 @@ export default function CheckoutPage() {
             </div>
 
             <div>
-              <label className="label-text">Delivery Area *</label>
+              <label className="label-text">
+                Delivery Area * <span className="text-neutral-400 font-normal">(auto-detected — override if needed)</span>
+              </label>
               <select
                 value={deliveryZone}
                 onChange={(e) => setDeliveryZone(e.target.value)}
